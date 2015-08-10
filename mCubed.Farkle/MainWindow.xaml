@@ -1,0 +1,398 @@
+﻿<Window x:Class="mCubed.Farkle.MainWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+		xmlns:local="clr-namespace:mCubed.Farkle"
+		Icon="AppIcon.ico"
+		DataContext="{Binding RelativeSource={RelativeSource Self}}"
+		Title="mCubed: Farkle"
+		Height="750"
+		MinWidth="850"
+		SizeToContent="Width">
+	<Window.CommandBindings>
+		<CommandBinding Command="{x:Static local:MainWindow.RollDiceCommand}"
+						CanExecute="RollDice_CanExecute"
+						Executed="RollDice" />
+		<CommandBinding Command="{x:Static local:MainWindow.ScoreRoundCommand}"
+						CanExecute="ScoreTurn_CanExecute"
+						Executed="ScoreTurn" />
+	</Window.CommandBindings>
+	<Window.Resources>
+		<local:DurationConverter x:Key="DurationConverter" />
+		<local:OrientationConverter x:Key="OrientationConverter" />
+		<local:FontWeightConverter x:Key="FontWeightConverter" />
+		<local:HighScoreConverter x:Key="HighScoreConverter" />
+		<CollectionViewSource x:Key="DiceCollection"
+							  Source="{Binding Path=DiceItems}">
+			<CollectionViewSource.GroupDescriptions>
+				<PropertyGroupDescription PropertyName="State" />
+				<PropertyGroupDescription PropertyName="Group" />
+			</CollectionViewSource.GroupDescriptions>
+			<CollectionViewSource.SortDescriptions>
+				<scm:SortDescription PropertyName="State"
+									 Direction="Descending" />
+				<scm:SortDescription PropertyName="DiceNumber"
+									 Direction="Ascending" />
+			</CollectionViewSource.SortDescriptions>
+		</CollectionViewSource>
+		<DataTemplate x:Key="GroupBoxHeader">
+			<TextBlock FontWeight="Bold"
+					   Text="{Binding}" />
+		</DataTemplate>
+		<Style TargetType="{x:Type GroupBox}">
+			<Setter Property="FontSize"
+					Value="16" />
+			<Setter Property="Padding"
+					Value="10" />
+			<Setter Property="Margin"
+					Value="10" />
+			<Setter Property="HeaderTemplate"
+					Value="{StaticResource GroupBoxHeader}" />
+		</Style>
+		<Style TargetType="{x:Type TextBlock}">
+			<Setter Property="FontSize"
+					Value="16" />
+			<Setter Property="FontWeight"
+					Value="Normal" />
+			<Setter Property="TextWrapping"
+					Value="Wrap" />
+		</Style>
+		<Style TargetType="{x:Type TextBlock}"
+			   BasedOn="{StaticResource {x:Type TextBlock}}"
+			   x:Key="ScoreText">
+			<Setter Property="FontSize"
+					Value="26" />
+			<Setter Property="FontWeight"
+					Value="Bold" />
+			<Setter Property="VerticalAlignment"
+					Value="Center" />
+		</Style>
+		<DataTemplate DataType="{x:Type local:Round}">
+			<Border BorderBrush="Black"
+					BorderThickness="1"
+					Margin="2"
+					Padding="2"
+					MinWidth="175">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition />
+						<RowDefinition />
+						<RowDefinition />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="10" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<TextBlock Grid.RowSpan="3"
+							   FontWeight="{Binding IsCurrentRound, Converter={StaticResource FontWeightConverter}}"
+							   VerticalAlignment="Center"
+							   FontSize="26"
+							   Text="{Binding RoundNumber}" />
+					<TextBlock Grid.Column="2"
+							   FontWeight="{Binding IsCurrentRound, Converter={StaticResource FontWeightConverter}}">
+					<TextBlock Text="Farkled!"
+							   FontWeight="Bold">
+							<TextBlock.Style>
+								<Style TargetType="{x:Type TextBlock}">
+									<Setter Property="Visibility"
+											Value="Collapsed" />
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding IsFarkle}"
+													 Value="True">
+											<Setter Property="Visibility"
+													Value="Visible" />
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</TextBlock.Style>
+					</TextBlock><TextBlock>
+							<TextBlock.Style>
+								<Style TargetType="{x:Type TextBlock}">
+									<Setter Property="Visibility"
+											Value="Visible" />
+									<Setter Property="FontWeight"
+											Value="Normal" />
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding IsFarkle}"
+													 Value="True">
+											<Setter Property="Visibility"
+													Value="Collapsed" />
+										</DataTrigger>
+										<DataTrigger Binding="{Binding IsCurrentRound}"
+													 Value="True">
+											<Setter Property="FontWeight"
+													Value="Bold" />
+										</DataTrigger>
+										<DataTrigger Binding="{Binding IsFinal}"
+													 Value="True">
+											<Setter Property="FontWeight"
+													Value="Bold" />
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</TextBlock.Style>
+						<Run>Round Score:</Run>
+						<TextBlock Text="{Binding RoundScore}" />
+					</TextBlock>
+				</TextBlock>
+				<TextBlock Grid.Row="1"
+						   Grid.Column="2"
+						   FontWeight="{Binding IsCurrentRound, Converter={StaticResource FontWeightConverter}}">
+					<Run>Risk Score:</Run>
+					<TextBlock Text="{Binding RiskScore}" />
+				</TextBlock>
+				<TextBlock Grid.Row="2"
+						   Grid.Column="2"
+						   FontWeight="{Binding IsCurrentRound, Converter={StaticResource FontWeightConverter}}">
+					<Run>Save Score:</Run>
+					<TextBlock Text="{Binding SaveScore}" />
+				</TextBlock>
+			</Grid>
+			</Border>
+		</DataTemplate>
+		<DataTemplate DataType="{x:Type local:Dice}">
+			<Border CornerRadius="5"
+					BorderBrush="Blue"
+					BorderThickness="3"
+					Margin="2"
+					Cursor="Hand"
+					Background="White"
+					MouseLeftButtonDown="DiceBorder_MouseLeftButtonDown"
+					x:Name="DiceBorder">
+				<Grid Width="50"
+					  Height="50">
+					<Image Source="{Binding Image}">
+						<Image.Style>
+							<Style TargetType="{x:Type Image}">
+								<Setter Property="Visibility"
+										Value="Visible" />
+								<Style.Triggers>
+									<DataTrigger Binding="{Binding Source={x:Static local:Settings.Instance}, Path=ShowImages}"
+												 Value="False">
+										<Setter Property="Visibility"
+												Value="Collapsed" />
+									</DataTrigger>
+								</Style.Triggers>
+							</Style>
+						</Image.Style>
+					</Image>
+					<TextBlock Text="{Binding Value}"
+							   HorizontalAlignment="Center">
+						<TextBlock.Style>
+							<Style TargetType="{x:Type TextBlock}"
+								   BasedOn="{StaticResource ScoreText}">
+								<Setter Property="Visibility"
+										Value="Collapsed" />
+								<Style.Triggers>
+									<DataTrigger Binding="{Binding Source={x:Static local:Settings.Instance}, Path=ShowImages}"
+												 Value="False">
+										<Setter Property="Visibility"
+												Value="Visible" />
+									</DataTrigger>
+								</Style.Triggers>
+							</Style>
+						</TextBlock.Style>
+					</TextBlock>
+				</Grid>
+			</Border>
+			<DataTemplate.Triggers>
+				<DataTrigger Binding="{Binding State}"
+							 Value="Scored">
+					<Setter Property="Background"
+							Value="Gray"
+							TargetName="DiceBorder" />
+					<Setter Property="BorderBrush"
+							Value="Black"
+							TargetName="DiceBorder" />
+					<Setter Property="Cursor"
+							Value="Arrow"
+							TargetName="DiceBorder" />
+				</DataTrigger>
+				<DataTrigger Binding="{Binding State}"
+							 Value="Saved">
+					<Setter Property="BorderBrush"
+							Value="Green"
+							TargetName="DiceBorder" />
+				</DataTrigger>
+				<MultiDataTrigger>
+					<MultiDataTrigger.Conditions>
+						<Condition Binding="{Binding State}"
+								   Value="Saved" />
+						<Condition Binding="{Binding Group}"
+								   Value="{x:Null}" />
+					</MultiDataTrigger.Conditions>
+					<MultiDataTrigger.Setters>
+						<Setter Property="BorderBrush"
+								Value="Red"
+								TargetName="DiceBorder" />
+					</MultiDataTrigger.Setters>
+				</MultiDataTrigger>
+			</DataTemplate.Triggers>
+		</DataTemplate>
+		<Storyboard x:Key="FarkleAnimation"
+					Storyboard.TargetName="FarkleLabel"
+					Storyboard.TargetProperty="(Grid.Opacity)">
+			<DoubleAnimation Duration="{Binding Source={x:Static local:Settings.Instance}, Path=AnimationMilli, Converter={StaticResource DurationConverter}}"
+							 From="0"
+							 To=".75"
+							 AutoReverse="True" />
+		</Storyboard>
+	</Window.Resources>
+	<Window.Background>
+		<LinearGradientBrush StartPoint="0,0"
+							 EndPoint="0,1">
+			<LinearGradientBrush.GradientStops>
+				<GradientStop Color="#FF0000"
+							  Offset="0" />
+				<GradientStop Color="#FF9999"
+							  Offset="0.5" />
+				<GradientStop Color="#FF0000"
+							  Offset="1" />
+			</LinearGradientBrush.GradientStops>
+		</LinearGradientBrush>
+	</Window.Background>
+	<Grid>
+		<DockPanel>
+			<GroupBox Header="Rounds"
+					  DockPanel.Dock="Left">
+				<ScrollViewer>
+					<ItemsControl ItemsSource="{Binding Rounds}" />
+				</ScrollViewer>
+			</GroupBox>
+
+			<GroupBox Header="Game Stats"
+					  DockPanel.Dock="Top">
+				<Grid>
+					<Grid.RowDefinitions>
+						<RowDefinition />
+						<RowDefinition Height="10" />
+						<RowDefinition />
+					</Grid.RowDefinitions>
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<TextBlock Grid.Column="0"
+							   HorizontalAlignment="Center">
+						<Run>Total</Run>
+						<LineBreak />
+						<Run>Score</Run>
+					</TextBlock>
+					<TextBlock Grid.Column="1"
+							   Style="{StaticResource ScoreText}"
+							   Text="{Binding TotalScore}"
+							   HorizontalAlignment="Center" />
+					<TextBlock Grid.Column="2"
+							   HorizontalAlignment="Center">
+						<Run>High</Run>
+						<LineBreak />
+						<Run>Score</Run>
+					</TextBlock>
+					<TextBlock Grid.Column="3"
+							   Style="{StaticResource ScoreText}"
+							   TextDecorations="Underline"
+							   MouseLeftButtonDown="ShowHighScores_MouseLeftButtonDown"
+							   Foreground="Blue"
+							   Cursor="Hand"
+							   Text="{Binding Source={x:Static local:Settings.Instance}, Path=HighScores, Converter={StaticResource HighScoreConverter}}"
+							   HorizontalAlignment="Center" />
+					<TextBlock Grid.Row="2"
+							   Grid.ColumnSpan="4"
+							   HorizontalAlignment="Center">
+						<Run FontWeight="Bold">Status: </Run>
+						<TextBlock Text="{Binding StatusText}" />
+					</TextBlock>
+				</Grid>
+			</GroupBox>
+
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="10" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+
+				<GroupBox Header="Actions">
+					<WrapPanel HorizontalAlignment="Center">
+						<Button Content="Roll"
+								Command="{x:Static local:MainWindow.RollDiceCommand}"
+								Padding="15" />
+						<Button Content="Save Round"
+								Command="{x:Static local:MainWindow.ScoreRoundCommand}"
+								Padding="15"
+								Margin="10,0" />
+						<Button Content="New Game"
+								Click="NewGameClick"
+								Padding="15" />
+						<Button Content="Settings"
+								Click="SettingsClick"
+								Padding="15"
+								Margin="10,0,0,0" />
+					</WrapPanel>
+				</GroupBox>
+
+				<ItemsControl Grid.Row="2"
+							  ItemsSource="{Binding Source={StaticResource DiceCollection}}">
+					<ItemsControl.GroupStyle>
+						<GroupStyle>
+							<GroupStyle.ContainerStyle>
+								<Style TargetType="{x:Type GroupItem}">
+									<Setter Property="Margin"
+											Value="5,0" />
+									<Setter Property="Template">
+										<Setter.Value>
+											<ControlTemplate>
+												<GroupBox Header="{Binding Name}"
+														  Margin="0">
+													<ItemsPresenter />
+												</GroupBox>
+											</ControlTemplate>
+										</Setter.Value>
+									</Setter>
+									<Style.Triggers>
+										<DataTrigger Binding="{Binding Name}"
+													 Value="{x:Null}">
+											<Setter Property="Template">
+												<Setter.Value>
+													<ControlTemplate>
+														<ItemsPresenter VerticalAlignment="Center" />
+													</ControlTemplate>
+												</Setter.Value>
+											</Setter>
+										</DataTrigger>
+									</Style.Triggers>
+								</Style>
+							</GroupStyle.ContainerStyle>
+							<GroupStyle.Panel>
+								<ItemsPanelTemplate>
+									<StackPanel Orientation="{Binding Converter={StaticResource OrientationConverter}}" />
+								</ItemsPanelTemplate>
+							</GroupStyle.Panel>
+						</GroupStyle>
+					</ItemsControl.GroupStyle>
+					<ItemsControl.ItemsPanel>
+						<ItemsPanelTemplate>
+							<WrapPanel IsItemsHost="True" />
+						</ItemsPanelTemplate>
+					</ItemsControl.ItemsPanel>
+				</ItemsControl>
+			</Grid>
+		</DockPanel>
+
+		<Grid Visibility="Collapsed"
+			  Opacity="0"
+			  Background="Black"
+			  x:Name="FarkleLabel">
+			<TextBlock HorizontalAlignment="Center"
+					   VerticalAlignment="Center"
+					   Text="FARKLE"
+					   FontSize="100"
+					   FontWeight="Bold"
+					   Foreground="#FF0000"
+					   FontFamily="Planet Benson 2" />
+		</Grid>
+	</Grid>
+</Window>

@@ -1,0 +1,142 @@
+﻿<Window x:Class="mCubed.Farkle.SettingsWindow"
+		xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:local="clr-namespace:mCubed.Farkle"
+		WindowStartupLocation="CenterOwner"
+		WindowStyle="ToolWindow"
+		SizeToContent="Height"
+		Title="Settings"
+		Width="450"
+		ResizeMode="NoResize">
+	<Window.Resources>
+		<local:RadioButtonConverter x:Key="RadioButtonConverter" />
+		<DataTemplate x:Key="GroupBoxHeader">
+			<TextBlock FontWeight="Bold"
+					   Text="{Binding}" />
+		</DataTemplate>
+		<Style TargetType="{x:Type GroupBox}">
+			<Setter Property="FontSize"
+					Value="16" />
+			<Setter Property="Padding"
+					Value="10" />
+			<Setter Property="Margin"
+					Value="10" />
+			<Setter Property="HeaderTemplate"
+					Value="{StaticResource GroupBoxHeader}" />
+		</Style>
+		<Style TargetType="{x:Type TextBlock}">
+			<Setter Property="FontSize"
+					Value="16" />
+			<Setter Property="FontWeight"
+					Value="Bold" />
+			<Setter Property="TextWrapping"
+					Value="Wrap" />
+			<Setter Property="VerticalAlignment"
+					Value="Center" />
+		</Style>
+	</Window.Resources>
+	<Window.Background>
+		<LinearGradientBrush StartPoint="0,0"
+							 EndPoint="0,1">
+			<LinearGradientBrush.GradientStops>
+				<GradientStop Color="#FF0000"
+							  Offset="0" />
+				<GradientStop Color="#FF9999"
+							  Offset="0.5" />
+				<GradientStop Color="#FF0000"
+							  Offset="1" />
+			</LinearGradientBrush.GradientStops>
+		</LinearGradientBrush>
+	</Window.Background>
+	<StackPanel Margin="10">
+		<GroupBox Header="Threshold/Minimum Score Per Round">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition />
+					<RowDefinition />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="20" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Row="0"
+						   Grid.Column="0"
+						   Text="Enable:" />
+				<WrapPanel Grid.Row="0"
+						   Grid.Column="2">
+					<RadioButton IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=ThresholdEnabled, Mode=TwoWay, Converter={StaticResource RadioButtonConverter}, ConverterParameter=True}"
+								 Content="Enabled" />
+					<RadioButton IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=ThresholdEnabled, Mode=TwoWay, Converter={StaticResource RadioButtonConverter}, ConverterParameter=False}"
+								 Content="Disabled"
+								 Margin="20,0,0,0" />
+				</WrapPanel>
+				<TextBlock Grid.Row="1"
+						   Grid.Column="0"
+						   Text="Minimum Score:" />
+				<TextBox Grid.Row="1"
+						 Grid.Column="2"
+						 Text="{Binding Source={x:Static local:Settings.Instance}, Path=Threshold}" />
+			</Grid>
+		</GroupBox>
+		<GroupBox Header="High Scores">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition />
+					<RowDefinition />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="20" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Row="0"
+						   Grid.Column="0"
+						   Text="Default Name:" />
+				<TextBox Grid.Row="0"
+						 Grid.Column="2"
+						 Text="{Binding Source={x:Static local:Settings.Instance}, Path=Name}" />
+				<TextBlock Grid.Row="1"
+						   Grid.Column="0"
+						   Text="Maximum Count:" />
+				<TextBox Grid.Row="1"
+						 Grid.Column="2"
+						 Text="{Binding Source={x:Static local:Settings.Instance}, Path=HighScoreCount}" />
+			</Grid>
+		</GroupBox>
+		<GroupBox Header="Misc">
+			<Grid>
+				<Grid.RowDefinitions>
+					<RowDefinition />
+					<RowDefinition />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" />
+					<ColumnDefinition Width="20" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<TextBlock Grid.Row="0"
+						   Grid.Column="0"
+						   Text="Show Dice as Images:" />
+				<WrapPanel Grid.Row="0"
+						   Grid.Column="2">
+					<RadioButton IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=ShowImages, Mode=TwoWay, Converter={StaticResource RadioButtonConverter}, ConverterParameter=True}"
+								 Content="Yes" />
+					<RadioButton IsChecked="{Binding Source={x:Static local:Settings.Instance}, Path=ShowImages, Mode=TwoWay, Converter={StaticResource RadioButtonConverter}, ConverterParameter=False}"
+								 Content="No"
+								 Margin="20,0,0,0" />
+				</WrapPanel>
+				<TextBlock Grid.Row="1"
+						   Grid.Column="0"
+						   Text="Farkle Duration (milliseconds):" />
+				<TextBox Grid.Row="1"
+						 Grid.Column="2"
+						 Text="{Binding Source={x:Static local:Settings.Instance}, Path=AnimationMilli}" />
+			</Grid>
+		</GroupBox>
+		<Button HorizontalAlignment="Center"
+				Padding="15"
+				Content="Save Settings"
+				Click="SaveSettingsClicked" />
+	</StackPanel>
+</Window>
